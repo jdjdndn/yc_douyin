@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         yc-抖音PC端识别跳转代码
 // @namespace    http://tampermonkey.net/
-// @version      0.1
+// @version      0.2
 // @description  抖音PC端识别跳转代码
 // @author       wcbblll
 // @match        https://www.douyin.com/*
@@ -86,7 +86,6 @@
       console.log('执行');
       const targetNode = e.target
       if (targetNode.nodeName !== 'SPAN') return
-      e.stopPropagation()
       let range;
       let textNode;
       let offset;
