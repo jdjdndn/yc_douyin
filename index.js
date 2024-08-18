@@ -31,6 +31,7 @@
 
   loopFunc(() => {
     setVideoTime()
+    autoOpenComment()
   })
 
   // 获取页面中面积最大的video
@@ -77,11 +78,12 @@
   // 跳转代码0:24 00:28 1:34 00:2:35
   // 遍历节点，非文本节点不处理，匹配文本节点中的时间字符串，使用timeToSeconds处理，并添加点击事件
   function setVideoTime() {
+    const ID = 'addListener'
     // 评论区
     // const comments = document.querySelectorAll("span[class='sU2yAQQU']");
-    const commentBody = document.querySelector('#merge-all-comment-container:not([addListener])');
+    const commentBody = document.querySelector(`#merge-all-comment-container:not([${ID}])`);
     if (!commentBody) return
-    commentBody.setAttribute('addListener', true)
+    commentBody.setAttribute(ID, true)
     commentBody.addEventListener('click', (e) => {
       console.log('执行');
       const targetNode = e.target
@@ -112,5 +114,15 @@
         video.currentTime = currentTime
       }
     })
+  }
+
+  function autoOpenComment() {
+    const commentBody = document.querySelector(`#relatedVideoCard`);
+    if (commentBody) return
+    function triggerKeyboardEvent(eventType, eventData) {
+      const event = new KeyboardEvent(eventType, eventData);
+      document.dispatchEvent(event);
+    }
+    triggerKeyboardEvent("keydown", { keyCode: 88, key: "x", code: "KeyX" });
   }
 })();
