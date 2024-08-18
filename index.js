@@ -11,6 +11,14 @@
 
 (function () {
   "use strict";
+  // 标签父盒子
+  const mainTagBoxClass = '.j5WZzJdp.IoRNNcMW.hVNC9qgC'
+  // 关注
+  const starClass = '.Ea6pNaMO'
+  // 这些自动跳过，直接下一个视频
+  const excludeList = ['漫画', '国漫', '修仙', '玄幻', '系统', '动画', '小说']
+  // 包含自动加关注
+  const includeList = ['肉感', '微胖', '辣妹', '穿搭', '变装']
 
   function loopFunc(fn) {
     function callback(mutationsList, observer) {
@@ -32,6 +40,8 @@
   loopFunc(() => {
     setVideoTime()
     autoOpenComment()
+    autoStar()
+    autoSkip()
   })
 
   // 获取页面中面积最大的video
@@ -116,13 +126,90 @@
     })
   }
 
+  function triggerKeyboardEvent(eventType, eventData) {
+    const event = new KeyboardEvent(eventType, eventData);
+    document.dispatchEvent(event);
+  }
+
+  // 是否在直播（非全屏，仅头像显示在直播）
+  function isPlaying() {
+    const star = [...document.querySelectorAll(starClass)].filter(item => isElementInViewportAndVisible(item))
+    return star.length === 0
+  }
+  // 是否在直播（全屏，整个画面都是直播）
+  function isVideoing() {
+    const tag = document.querySelector('.semi-tag-content.semi-tag-content-ellipsis')
+    return tag && tag.innerText === '直播中' && isElementInViewportAndVisible(tag)
+  }
+
+  function isElementInViewportAndVisible(element) {
+    const rect = element.getBoundingClientRect();
+    const isVisible = rect.top >= 0 && rect.left >= 0 && rect.right < window.innerWidth && rect.bottom <= window.innerHeight && rect.width != 0 && rect.height != 0
+    return isVisible && (window.getComputedStyle(element).display !== 'none');
+  }
+
+
+  // 自动打开评论区
   function autoOpenComment() {
     const commentBody = document.querySelector(`#relatedVideoCard`);
     if (commentBody) return
-    function triggerKeyboardEvent(eventType, eventData) {
-      const event = new KeyboardEvent(eventType, eventData);
-      document.dispatchEvent(event);
-    }
+    if (isVideoing()) return
     triggerKeyboardEvent("keydown", { keyCode: 88, key: "x", code: "KeyX" });
+  }
+
+  // 自动关注
+  function autoStar() {
+    // 直播中不处理
+    if (isPlaying()) return
+    const hasStarFlag = hasStar()
+    if (typeof hasStarFlag === 'string' || hasStarFlag) return
+    // j5WZzJdp IoRNNcMW hVNC9qgC
+
+    // 是否已关注
+    function hasStar() {
+      const star = [...document.querySelectorAll(starClass)].filter(item => isElementInViewportAndVisible(item))
+      if (star.length != 1) return 'unknow'
+      const starItem = star[0]
+      return starItem.parentNode.children[0] !== starItem
+    }
+    const mainTagBox = [...document.querySelectorAll(mainTagBoxClass)].filter(item => isElementInViewportAndVisible(item))
+    if (!mainTagBox.length) return
+    const tagList = mainTagBox[0].querySelectorAll('span')
+    const tagLen = tagList.length
+    for (let i = 0; i < tagLen; i++) {
+      const item = tagList[i];
+      const text = item.innerText
+      if (!text.startsWith('#')) continue
+      if (includeList.some(item => text.includes(item))) {
+        console.log('关注了');
+        triggerKeyboardEvent("keydown", { keyCode: 71, key: "g", code: "KeyG" });
+        continue
+      }
+    }
+  }
+
+  // 直播自动跳过
+  function autoSkip() {
+    if (isVideoing()) {
+      console.log('video playing');
+      triggerKeyboardEvent("keydown", { keyCode: 40, key: "ArrowDown", code: "ArrowDown" });
+      return
+    }
+    const mainTagBox = [...document.querySelectorAll(mainTagBoxClass)].filter(item => isElementInViewportAndVisible(item))
+    if (!mainTagBox.length) return
+    const tagList = mainTagBox[0].querySelectorAll('span')
+    const tagLen = tagList.length
+    let flag = false
+    for (let i = 0; i < tagLen; i++) {
+      const item = tagList[i];
+      const text = item.innerText
+      if (!text.startsWith('#')) continue
+      if (excludeList.some(item => text.includes(item))) {
+        console.log('跳过：', text);
+        flag = true
+        continue
+      }
+    }
+    flag && triggerKeyboardEvent("keydown", { keyCode: 40, key: "ArrowDown", code: "ArrowDown" });
   }
 })();
