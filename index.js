@@ -16,9 +16,9 @@
   // 关注
   const starClass = '.Ea6pNaMO'
   // 这些自动跳过，直接下一个视频
-  const excludeList = ['漫画', '国漫', '修仙', '玄幻', '系统', '动画', '小说']
+  const excludeList = ['漫画', '国漫', '修仙', '玄幻', '系统', '动画', '动漫', '小说', '黑神话']
   // 包含自动加关注
-  const includeList = ['肉感', '微胖', '辣妹', '穿搭', '变装']
+  const includeList = ['肉感', '微胖', '辣妹', '穿搭', '变装', '纯欲', '斩男']
 
   function loopFunc(fn) {
     function callback(mutationsList, observer) {
@@ -148,12 +148,21 @@
     return isVisible && (window.getComputedStyle(element).display !== 'none');
   }
 
+  // 找到唯一一个在页面中的元素
+  function findOne(selector) {
+    const list = [...document.querySelectorAll(selector)].filter(item => isElementInViewportAndVisible(item))
+    if (list.length == 1) return list[0]
+    return null
+  }
 
   // 自动打开评论区
   function autoOpenComment() {
-    const commentBody = document.querySelector(`#relatedVideoCard`);
-    if (commentBody) return
     if (isVideoing()) return
+    // const commentBody = document.querySelector(`#relatedVideoCard`);
+    // if (commentBody && isElementInViewportAndVisible(commentBody)) return
+    const commentBodyParent = findOne('#sliderVideo')
+    if (!commentBodyParent || !commentBodyParent.children) return
+    if (isElementInViewportAndVisible(commentBodyParent.children[1])) return
     triggerKeyboardEvent("keydown", { keyCode: 88, key: "x", code: "KeyX" });
   }
 
@@ -162,9 +171,24 @@
     // 直播中不处理
     if (isPlaying()) return
     const hasStarFlag = hasStar()
-    if (typeof hasStarFlag === 'string' || hasStarFlag) return
-    // j5WZzJdp IoRNNcMW hVNC9qgC
-
+    if (hasStarFlag) return
+    // #semiTabauthor_card .semi-button-content.innerText
+    function cardStar() {
+      let starBtn = document.querySelector('.semi-button-content')
+      if (starBtn && starBtn.innerText === '关注') {
+        starBtn.click()
+        return true
+      }
+      return false
+    }
+    if (typeof hasStarFlag === 'string') {
+      if (cardStar()) return
+      const card = document.querySelector('#semiTabauthor_card')
+      if (!card) return
+      card.click()
+      cardStar()
+      return
+    }
     // 是否已关注
     function hasStar() {
       const star = [...document.querySelectorAll(starClass)].filter(item => isElementInViewportAndVisible(item))
