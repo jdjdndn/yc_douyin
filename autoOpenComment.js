@@ -19,7 +19,7 @@
 
   function isElementInViewportAndVisible(element) {
     const rect = element.getBoundingClientRect();
-    const isVisible = rect.top >= 0 && rect.left >= 0 && rect.right < window.innerWidth && rect.bottom <= window.innerHeight && rect.width != 0 && rect.height != 0
+    const isVisible = rect.top >= 0 && rect.left >= 0 && rect.right <= window.innerWidth && rect.bottom <= window.innerHeight && rect.width != 0 && rect.height != 0
     return isVisible && (window.getComputedStyle(element).display !== 'none');
   }
 
